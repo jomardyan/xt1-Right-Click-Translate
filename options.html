@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Right-click Translate Options</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main class="card">
+    <h1>Right-click Translate</h1>
+    <p class="subtitle">Choose how translations should open and set your target language.</p>
+
+    <form id="options-form">
+      <label class="field">
+        <span class="label">Target language (e.g., en, es, fr)</span>
+        <input id="targetLang" name="targetLang" type="text" maxlength="10" required>
+      </label>
+
+      <label class="field">
+        <span class="label">Open translation</span>
+        <select id="openMode" name="openMode">
+          <option value="newTab">In a new tab</option>
+          <option value="currentTab">In the current tab</option>
+        </select>
+      </label>
+
+      <div class="actions">
+        <button type="submit">Save</button>
+        <span id="status" role="status" aria-live="polite"></span>
+      </div>
+    </form>
+  </main>
+
+  <script src="options.js"></script>
+</body>
+</html>
