@@ -12,17 +12,60 @@
     <p class="subtitle">Choose how translations should open and set your target language.</p>
 
     <form id="options-form">
-      <label class="field">
-        <span class="label">Target language (e.g., en, es, fr)</span>
-        <input id="targetLang" name="targetLang" type="text" maxlength="10" required>
-      </label>
+      <div class="layout two-col">
+        <label class="field">
+          <span class="label">Source language</span>
+          <select id="sourceLang" name="sourceLang"></select>
+        </label>
+        <label class="field">
+          <span class="label">Provider</span>
+          <select id="provider" name="provider">
+            <option value="google">Google Translate</option>
+            <option value="deepl">DeepL</option>
+            <option value="bing">Bing Translator</option>
+            <option value="yandex">Yandex Translate</option>
+            <option value="microsoft">Microsoft Translator</option>
+          </select>
+        </label>
+      </div>
 
       <label class="field">
-        <span class="label">Open translation</span>
-        <select id="openMode" name="openMode">
-          <option value="newTab">In a new tab</option>
-          <option value="currentTab">In the current tab</option>
-        </select>
+        <span class="label">Add target language</span>
+        <div class="row">
+          <select id="targetSelect" name="targetSelect"></select>
+          <button type="button" id="addTarget">Add</button>
+        </div>
+        <p class="hint">Maintain a quick list of languages; these show up in the context menu.</p>
+      </label>
+
+      <div class="chips" id="targetsList"></div>
+
+      <div class="layout two-col">
+        <label class="field">
+          <span class="label">Open translation</span>
+          <select id="openMode" name="openMode">
+            <option value="newTab">In a new tab</option>
+            <option value="currentTab">In the current tab</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span class="label">Theme</span>
+          <select id="themeMode" name="themeMode">
+            <option value="auto">Auto</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="field checkbox">
+        <input type="checkbox" id="previewEnabled" name="previewEnabled">
+        <span>Show quick preview notification (when available) before opening</span>
+      </label>
+      <label class="field checkbox">
+        <input type="checkbox" id="saveHistory" name="saveHistory">
+        <span>Keep translation history for quick access</span>
       </label>
 
       <div class="actions">

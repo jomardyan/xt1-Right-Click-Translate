@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "Right-click Translate",
+    "description": "Extension name"
+  },
+  "extDescription": {
+    "message": "Translate selected text from the context menu with multiple providers, targets, and quick preview.",
+    "description": "Extension description"
+  }
+}
