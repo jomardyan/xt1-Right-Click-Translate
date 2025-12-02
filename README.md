@@ -39,6 +39,8 @@ Translate selected text from any page via a simple context menu.
 ## Privacy
 No personal data is collected or sent by the extension itself. Selected text is only sent to the chosen provider when you trigger a translation. Preview translations use a public API (MyMemory) and can be disabled in options.
 
+For full details, see the [Privacy Policy](PRIVACY_POLICY.md).
+
 ## Release notes
 - 1.3.0: Multiple targets, provider expansion, keyboard shortcut, quick preview, history-informed submenu, and dark mode for options.
 - 1.2.0: Provider selection (Google or DeepL); menu title reflects provider and target language.
