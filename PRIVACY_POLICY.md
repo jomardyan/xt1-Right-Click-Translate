@@ -1,8 +1,8 @@
 # Privacy Policy for Right-click Translate
 
-**Effective date:** 2025-01-01  
+**Effective date:** December 2, 2025  
 
-This Privacy Policy describes how the browser extension **Right-click Translate** (the "Extension") provided by **Hayk Jomardyan** ("we", "us", or "our") handles information when used in supported browsers, including Google Chrome and Microsoft Edge.
+This Privacy Policy describes how the browser extension **Right-click Translate** (the "Extension") provided by **jomardyan** ("we", "us", or "our") handles information when used in supported browsers, including Google Chrome and Microsoft Edge.
 
 By installing or using the Extension, you acknowledge that you have read and understood this Privacy Policy.
 
@@ -12,72 +12,210 @@ This Privacy Policy applies solely to the Extension as distributed through:
 - The Chrome Web Store for Google Chrome and other Chromium-based browsers.
 - The Microsoft Edge Add-ons store for Microsoft Edge.
 
-It does not apply to any websites, services, or applications that may be linked from the Extension but are operated by third parties under their own privacy policies.
+It does not apply to third-party translation services (Google Translate, DeepL, Bing Translator, Yandex Translate, Microsoft Translator, or MyMemory API) that are accessed through the Extension, each of which operates under its own privacy policy.
 
-## 2. Data collection and processing
+## 2. Data Collection and Processing
 
-- The Extension does **not** collect, store, or process any personal data or personally identifiable information (PII).  
-- The Extension does **not** collect or transmit your browsing history, URLs, search queries, IP address, device identifiers, cookies, or similar identifiers.  
-- The Extension does **not** track your behavior across websites, and does **not** perform any profiling or analytics.
+**Right-click Translate does not collect, store, transmit, or process any personal data or personally identifiable information (PII) on our servers.**
 
-All features of the Extension are designed to work without requiring any personal or sensitive user data, in line with data minimization expectations for Chrome and Edge extensions.
+Specifically, the Extension itself does **not**:
+- Collect or transmit your browsing history, URLs, or search queries to our servers
+- Send your IP address or device identifiers to us
+- Use cookies or similar tracking technologies for analytics
+- Track your behavior across websites for marketing or profiling
+- Perform any analytics or user tracking on our behalf
+- Store your translated text or selections on external servers
 
-## 3. Local processing and storage
+The Extension operates as a client-side tool that facilitates access to third-party translation services selected by you.
 
-- All processing performed by the Extension occurs locally within your browser.  
-- Any settings, preferences, or cached data used by the Extension (if any) are stored only in your browser's local storage or synchronized storage associated with your browser account.  
-- We do not have access to this locally stored information and do not retrieve it to our own servers.
+## 3. Local Processing and Storage
 
-## 4. Third-party services
+### Extension Settings
+The Extension stores the following data **locally in your browser** using chrome.storage:
+- **User preferences**: Source language, target languages, translation provider choice
+- **Translation history**: Recently used language pairs for quick access
+- **Options**: Tab behavior (new tab vs. current tab), preview settings, theme preference
+- **Menu configuration**: Your saved target language list
 
-- The Extension does **not** use third-party analytics tools, advertising networks, or tracking pixels.  
-- The Extension does **not** embed third-party SDKs or scripts for the purpose of collecting user data.  
-- The Extension offers an optional preview translation feature that uses the MyMemory public translation API (`https://api.mymemory.translated.net/`). When enabled, only the selected text you choose to translate is sent to this service. No personal data, browsing history, or identifiers are shared. This feature can be disabled in the Extension's options.
-- When you trigger a translation, the selected text is sent to your chosen translation provider (Google, DeepL, Bing, Yandex, or Microsoft). Each provider operates under its own privacy policy.
+### Data Storage Location
+- All settings and history are stored **only in your browser's local storage** (chrome.storage.sync)
+- This data can sync across your devices if you're signed into Chrome/Edge with sync enabled
+- We have no servers, no databases, and no access to any information stored by the Extension
+- You can clear this data at any time by removing the Extension or clearing browser data
 
-## 5. Permissions
+## 4. Third-Party Translation Services
 
-The Extension may request certain browser permissions that are technically required for its functionality (for example, access to specific sites, tabs, or storage).  
-Requesting a permission does **not** mean that personal data is collected; permissions are only used to provide the core features of the Extension and not for data harvesting or tracking, in accordance with Chrome Web Store and Microsoft Edge Add-ons policies.
+### How Translation Works
+When you use the Extension to translate text:
+1. You select text on a web page
+2. You trigger translation via right-click menu or keyboard shortcut
+3. The Extension sends **only the selected text** to your chosen translation provider
+4. The translation provider processes the text and returns the translation
 
-The Extension requests the following permissions:
-- `contextMenus`: To add the right-click menu entry.
-- `tabs`: To open or replace the page with the translation provider.
-- `storage`: To save options, targets, and history across devices.
-- `scripting` + `activeTab`: To capture the current selection for the keyboard shortcut.
-- `notifications`: To show quick preview messages.
-- Host permissions for `https://api.mymemory.translated.net/*`: To enable optional preview translations using the MyMemory API.
+### Third-Party Services
+The Extension provides access to the following third-party translation services:
 
-## 6. Children's privacy
+#### Translation Provider Websites
+- **Google Translate** (translate.google.com)
+- **DeepL** (deepl.com/translator)
+- **Bing Translator** (bing.com/translator)
+- **Yandex Translate** (translate.yandex.com)
+- **Microsoft Translator** (translator.microsoft.com)
 
-Because the Extension does not collect, store, or process any personal information, it does not knowingly collect information from children of any age.  
-If this changes in a future version, this Privacy Policy will be updated to reflect the applicable requirements for children's data protection.
+When you select these providers, the Extension opens their website in a browser tab with your selected text pre-filled. The provider's privacy policy applies to that interaction.
 
-## 7. User rights and controls
+#### Preview Translation API
+- **MyMemory API** (api.mymemory.translated.net)
 
-Since the Extension does not collect or store personal data on our servers, there is no personal data for us to access, modify, export, or delete on your behalf.  
-You may at any time:
-- Disable the Extension from your browser's extensions/add-ons page.
-- Uninstall the Extension, which will remove it and any associated local data stored by the browser.
+When preview mode is enabled (optional), the Extension sends selected text to MyMemory API for quick translation preview. This is a third-party service, and their privacy policy applies.
 
-For Chrome and Edge, you can manage or remove extensions from the respective extensions management pages provided by the browser.
+### Third-Party Data Sharing
+The Extension **only** shares data with third parties when:
+- You explicitly trigger a translation (selected text is sent to your chosen provider)
+- Preview mode is enabled and you select text (sent to MyMemory API)
 
-## 8. International data transfers
+**Important Notes:**
+- The Extension does not control third-party services' data handling practices
+- Each translation provider has its own privacy policy
+- You can disable preview mode in Extension settings to avoid MyMemory API requests
+- The Extension itself does not log, store, or analyze the text you translate
 
-Because we do not collect or store personal data, there are no international transfers of personal data related to the Extension.  
-If future versions begin to collect data, this section will be updated to describe any applicable transfers and safeguards.
+### Third-Party Privacy Policies
+Please review the privacy policies of services you use:
+- [Google Translate Privacy Policy](https://policies.google.com/privacy)
+- [DeepL Privacy Policy](https://www.deepl.com/privacy)
+- [Microsoft Privacy Statement](https://privacy.microsoft.com/privacystatement)
+- [Yandex Privacy Policy](https://yandex.com/legal/confidential/)
+- [MyMemory Privacy Policy](https://mymemory.translated.net/doc/privacy.php)
 
-## 9. Changes to this Privacy Policy
+## 5. Permissions Explained
 
-We may update this Privacy Policy from time to time, for example to reflect changes in:
-- The functionality or behavior of the Extension.
-- Applicable laws, regulations, or store policies for Chrome or Edge extensions.
+Right-click Translate requests the following browser permissions to provide its core functionality. **These permissions are not used for data collection or tracking by us:**
 
-When changes are made, the "Effective date" at the top of this document will be updated. Material changes will be reflected in the latest version of the policy made available via the Chrome Web Store and Microsoft Edge Add-ons listing pages.
+### Context Menus Permission
+- **Purpose**: Add the "Translate selection" item to the right-click context menu
+- **Data**: No data is collected; only enables menu functionality
+- **Privacy**: Does not access page content or user activity
 
-## 10. Contact
+### Tabs Permission
+- **Purpose**: Open translation provider websites in new or current tabs
+- **Data**: Used to manage tab navigation; no tab data is collected
+- **Privacy**: Does not access browsing history or tab contents
+
+### Storage Permission
+- **Purpose**: Save your preferences, target languages, and translation history locally
+- **Data**: Settings, language preferences, usage history
+- **Privacy**: All data remains in browser storage; nothing is transmitted to external servers
+
+### Scripting + ActiveTab Permissions
+- **Purpose**: Capture selected text when using the keyboard shortcut (Alt+Shift+T)
+- **Data**: Only accesses selected text on the active tab when you trigger the shortcut
+- **Privacy**: No page content is accessed except when you explicitly trigger translation; no data is logged
+
+### Notifications Permission
+- **Purpose**: Display quick preview translations without leaving the page
+- **Data**: Shows translation result locally; no data is sent externally by the notification
+- **Privacy**: Notifications are generated locally from API responses
+
+### Host Permissions (api.mymemory.translated.net)
+- **Purpose**: Fetch quick preview translations from MyMemory API (optional feature)
+- **Data**: Selected text is sent to MyMemory API only when preview mode is enabled
+- **Privacy**: You can disable preview mode to avoid external API calls; the Extension does not log requests
+
+All permissions are used exclusively for the translation facilitation functionality and not for any form of data collection, tracking, or monetization by us.
+
+## 6. What Data is Shared
+
+The Extension shares data **only** with third-party translation services and **only** when you explicitly trigger a translation:
+
+### Shared with Translation Providers
+- **Selected text**: The text you highlight and choose to translate
+- **Source and target languages**: Your selected language pair
+- **Browser information**: Standard HTTP headers sent by your browser (user agent, etc.)
+
+### Shared with MyMemory API (Preview Mode)
+When preview mode is enabled:
+- **Selected text**: Sent to MyMemory for quick translation
+- **Language pair**: Source and target languages
+
+**Important**: The Extension itself does not collect or store this data. It is sent directly from your browser to the third-party service.
+
+## 7. Children's Privacy
+
+The Extension does not collect or transmit personal information to our servers. However, when using third-party translation services, their privacy policies apply. Parents and guardians should review third-party policies if children will use translation services through this Extension.
+
+## 8. User Rights and Controls
+
+You have complete control over the Extension and your locally stored data:
+
+### Extension Controls
+- **Disable Preview**: Turn off preview mode to avoid MyMemory API requests
+- **Choose Providers**: Select which translation service to use
+- **Clear History**: Clear translation history from Extension settings
+- **Manage Languages**: Add or remove target languages from the menu
+- **Keyboard Shortcuts**: Customize or disable the translation shortcut
+
+### Data Management
+- **Disable**: Turn off the Extension at any time from chrome://extensions/
+- **Clear Storage**: Remove the Extension to delete all locally stored preferences
+- **Browser Sync**: Control whether settings sync across devices via browser settings
+- **Third-Party Data**: Contact translation providers directly to manage data they collect
+
+To manage extensions:
+- **Chrome**: chrome://extensions/
+- **Edge**: edge://extensions/
+
+## 9. International Data Transfers
+
+The Extension itself does not transfer data internationally. However, when you use third-party translation services:
+- Your selected text is sent to the translation provider's servers
+- These servers may be located in different countries
+- Each provider's privacy policy describes their data handling and transfers
+
+## 10. Changes to This Privacy Policy
+
+We may update this Privacy Policy to reflect:
+- Changes in the Extension's functionality or behavior
+- Updates to applicable laws, regulations, or browser extension policies
+- Changes to third-party services or integrations
+
+When changes are made:
+- The "Effective date" at the top will be updated
+- Material changes will be reflected in the Chrome Web Store and Microsoft Edge Add-ons listings
+- Continued use of the Extension after changes constitutes acceptance of the updated policy
+
+## 11. Compliance
+
+This Extension is designed to comply with:
+- Chrome Web Store Developer Program Policies
+- Microsoft Edge Add-ons Policies
+- General Data Protection Regulation (GDPR)
+- California Consumer Privacy Act (CCPA)
+
+Given that the Extension itself does not collect or transmit personal data to our servers, most data protection obligations do not apply to us. However, third-party services you access through the Extension may have their own compliance obligations.
+
+## 12. Security
+
+### Extension Security
+- The Extension operates entirely client-side in your browser
+- No external servers are operated or controlled by us
+- Communication with translation providers uses HTTPS
+- Settings and history are protected by browser security mechanisms
+
+### Your Responsibility
+- Be mindful of sensitive information you translate (passwords, personal data, confidential documents)
+- Remember that translated text is sent to third-party services
+- Review third-party privacy policies before translating sensitive content
+- Consider using offline translation tools for highly sensitive data
+
+## 13. Contact
 
 If you have any questions or concerns about this Privacy Policy or the Extension, you can contact us at:
 
-**Name:** Hayk Jomardyan  
-**Website:** https://github.com/jomardyan/xt1-Right-Click-Translate
+**Developer:** jomardyan  
+**GitHub Repository:** [https://github.com/jomardyan/xt1-Right-Click-Translate](https://github.com/jomardyan/xt1-Right-Click-Translate)  
+**Report Issues:** [https://github.com/jomardyan/xt1-Right-Click-Translate/issues](https://github.com/jomardyan/xt1-Right-Click-Translate/issues)
+
+---
+
+**Summary**: Right-click Translate is a privacy-respecting browser extension that facilitates access to third-party translation services. The Extension itself collects no personal data and operates no external servers. When you translate text, it is sent directly from your browser to your chosen translation provider (Google, DeepL, Bing, Yandex, Microsoft, or MyMemory), whose privacy policies apply. All Extension settings remain in your browser's local storage under your complete control.
