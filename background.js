@@ -1,5 +1,11 @@
 const MENU_ID = 'rightClickTranslate';
 const MENU_LANG_PREFIX = 'rightClickTranslateLang_';
+const SUBMENU_ID = `${MENU_ID}_submenu`;
+const SUBMENU_TITLE = 'Translate to...';
+const MAX_HISTORY = 20;
+const MAX_MENU_LANGUAGES = 6;
+const PREVIEW_TEXT_LIMIT = 180;
+const PREVIEW_API_URL = 'https://api.mymemory.translated.net/get';
 
 const LANGUAGE_LABELS = {
   auto: 'Auto-detect',
@@ -21,18 +27,27 @@ const LANGUAGE_LABELS = {
   sv: 'Swedish'
 };
 
+const PROVIDERS = {
+  google: 'Google',
+  deepl: 'DeepL',
+  bing: 'Bing',
+  yandex: 'Yandex',
+  microsoft: 'Microsoft'
+};
+
 const DEFAULT_OPTIONS = {
   sourceLang: 'auto',
-  targetLanguages: ['en', 'es'],
-  provider: 'google', // google | deepl | bing | yandex | microsoft
-  openMode: 'newTab', // newTab | currentTab
+  targetLanguages: ['en', 'es', 'pl'],
+  provider: 'google',
+  openMode: 'newTab',
   previewEnabled: true,
   saveHistory: true,
   translationHistory: []
 };
 
-const MAX_HISTORY = 20;
-
+/**
+ * Promisified Chrome Storage API
+ */
 const getOptions = () =>
   new Promise((resolve) => {
     chrome.storage.sync.get(DEFAULT_OPTIONS, resolve);
@@ -43,6 +58,9 @@ const setOptions = (values) =>
     chrome.storage.sync.set(values, resolve);
   });
 
+/**
+ * Promisified Chrome Context Menu API
+ */
 const removeAllMenus = () =>
   new Promise((resolve) => {
     chrome.contextMenus.removeAll(() => resolve());
@@ -52,237 +70,309 @@ const safeCreateMenu = (createProps) =>
   new Promise((resolve) => {
     chrome.contextMenus.create(createProps, () => {
       // Ignore duplicate errors; they'll be cleared on next rebuild.
-      // eslint-disable-next-line no-unused-expressions
       chrome.runtime.lastError;
       resolve();
     });
   });
 
+/**
+ * Get display label for language code
+ */
 const getLanguageLabel = (code) => {
   const name = LANGUAGE_LABELS[code];
   return name ? `${name} (${code})` : code;
 };
 
-const getProviderLabel = (provider) => {
-  switch (provider) {
-    case 'deepl':
-      return 'DeepL';
-    case 'bing':
-      return 'Bing';
-    case 'yandex':
-      return 'Yandex';
-    case 'microsoft':
-      return 'Microsoft';
-    default:
-      return 'Google';
-  }
-};
+/**
+ * Get display label for provider
+ */
+const getProviderLabel = (provider) => PROVIDERS[provider] || PROVIDERS.google;
 
+/**
+ * Build translation URL for the selected provider
+ */
 const buildUrl = (provider, sourceLang, targetLang, query) => {
   const source = sourceLang || 'auto';
-  switch (provider) {
-    case 'deepl':
-      return `https://www.deepl.com/translator#${encodeURIComponent(source)}/${encodeURIComponent(targetLang)}/${query}`;
-    case 'bing':
-      return `https://www.bing.com/translator?text=${query}&from=${encodeURIComponent(source)}&to=${encodeURIComponent(targetLang)}`;
-    case 'yandex':
-      return `https://translate.yandex.com/?source_lang=${encodeURIComponent(source)}&target_lang=${encodeURIComponent(targetLang)}&text=${query}`;
-    case 'microsoft':
-      return `https://www.bing.com/translator?text=${query}&from=${encodeURIComponent(source)}&to=${encodeURIComponent(targetLang)}`;
-    default:
-      return `https://translate.google.com/?sl=${encodeURIComponent(source)}&tl=${encodeURIComponent(targetLang)}&text=${query}&op=translate`;
+  const providers = {
+    deepl: () => `https://www.deepl.com/translator#${encodeURIComponent(source)}/${encodeURIComponent(targetLang)}/${query}`,
+    bing: () => `https://www.bing.com/translator?text=${query}&from=${encodeURIComponent(source)}&to=${encodeURIComponent(targetLang)}`,
+    yandex: () => `https://translate.yandex.com/?source_lang=${encodeURIComponent(source)}&target_lang=${encodeURIComponent(targetLang)}&text=${query}`,
+    microsoft: () => `https://www.bing.com/translator?text=${query}&from=${encodeURIComponent(source)}&to=${encodeURIComponent(targetLang)}`,
+    google: () => `https://translate.google.com/?sl=${encodeURIComponent(source)}&tl=${encodeURIComponent(targetLang)}&text=${query}&op=translate`
+  };
+  return (providers[provider] || providers.google)();
+};
+
+/**
+ * Record translation in history
+ */
+const recordHistory = async ({ text, sourceLang, targetLang, provider }) => {
+  try {
+    const { translationHistory = [], saveHistory } = await getOptions();
+    if (!saveHistory) return;
+
+    const entry = {
+      text,
+      sourceLang,
+      targetLang,
+      provider,
+      at: Date.now()
+    };
+    const next = [entry, ...translationHistory].slice(0, MAX_HISTORY);
+    await setOptions({ translationHistory: next });
+  } catch (error) {
+    console.error('Failed to record translation history:', error);
   }
 };
 
-const recordHistory = async ({ text, sourceLang, targetLang, provider }) => {
-  const { translationHistory = [], saveHistory } = await getOptions();
-  if (!saveHistory) return;
-
-  const entry = {
-    text,
-    sourceLang,
-    targetLang,
-    provider,
-    at: Date.now()
-  };
-  const next = [entry, ...translationHistory].slice(0, MAX_HISTORY);
-  await setOptions({ translationHistory: next });
-};
-
+/**
+ * Get top languages from history, merged with fallback targets
+ */
 const getTopLanguages = async (fallbackTargets) => {
-  const { translationHistory = [] } = await getOptions();
-  const counts = {};
-  translationHistory.forEach(({ targetLang }) => {
-    if (!targetLang) return;
-    counts[targetLang] = (counts[targetLang] || 0) + 1;
-  });
+  try {
+    const { translationHistory = [] } = await getOptions();
+    const counts = {};
+    translationHistory.forEach(({ targetLang }) => {
+      if (!targetLang) return;
+      counts[targetLang] = (counts[targetLang] || 0) + 1;
+    });
 
-  const sortedHistory = Object.entries(counts)
-    .sort((a, b) => b[1] - a[1])
-    .map(([code]) => code);
+    const sortedHistory = Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([code]) => code);
 
-  const merged = [...fallbackTargets];
-  sortedHistory.forEach((code) => {
-    if (!merged.includes(code)) merged.push(code);
-  });
+    const merged = [...fallbackTargets];
+    sortedHistory.forEach((code) => {
+      if (!merged.includes(code)) merged.push(code);
+    });
 
-  return merged.slice(0, 6);
+    return merged.slice(0, MAX_MENU_LANGUAGES);
+  } catch (error) {
+    console.error('Failed to get top languages:', error);
+    return fallbackTargets.slice(0, MAX_MENU_LANGUAGES);
+  }
 };
 
 let menuQueue = Promise.resolve();
 
+/**
+ * Create or update context menu items
+ */
 const createOrUpdateMenu = async () => {
   menuQueue = menuQueue
     .then(async () => {
-      const { targetLanguages = [], provider } = await getOptions();
-      const primaryTarget = targetLanguages[0] || 'en';
-      const providerLabel = getProviderLabel(provider);
-      const title = `Translate selection -> ${getLanguageLabel(primaryTarget)} (${providerLabel})`;
-      const languages = await getTopLanguages(targetLanguages.length ? targetLanguages : ['en']);
+      try {
+        const { targetLanguages = [], provider } = await getOptions();
+        const primaryTarget = targetLanguages[0] || 'en';
+        const providerLabel = getProviderLabel(provider);
+        const title = `Translate selection → ${getLanguageLabel(primaryTarget)} (${providerLabel})`;
+        const languages = await getTopLanguages(targetLanguages.length ? targetLanguages : ['en']);
 
-      await removeAllMenus();
+        await removeAllMenus();
 
-      await safeCreateMenu({
-        id: MENU_ID,
-        title,
-        contexts: ['selection']
-      });
+        await safeCreateMenu({
+          id: MENU_ID,
+          title,
+          contexts: ['selection']
+        });
 
-      await safeCreateMenu({
-        id: `${MENU_ID}_submenu`,
-        title: 'Translate to...',
-        contexts: ['selection']
-      });
+        await safeCreateMenu({
+          id: SUBMENU_ID,
+          title: SUBMENU_TITLE,
+          parentId: MENU_ID,
+          contexts: ['selection']
+        });
 
-      await Promise.all(
-        languages.map((code) =>
-          safeCreateMenu({
-            id: `${MENU_LANG_PREFIX}${code}`,
-            parentId: `${MENU_ID}_submenu`,
-            title: getLanguageLabel(code),
-            contexts: ['selection']
-          })
-        )
-      );
-    })
-    .catch(() => {
-      // Swallow menu rebuild errors; next change will retry.
+        await Promise.all(
+          languages.map((code) =>
+            safeCreateMenu({
+              id: `${MENU_LANG_PREFIX}${code}`,
+              parentId: SUBMENU_ID,
+              title: getLanguageLabel(code),
+              contexts: ['selection']
+            })
+          )
+        );
+      } catch (error) {
+        console.error('Failed to create or update menu:', error);
+      }
     });
 };
 
-const showPreviewNotification = async (provider, targetLang, resultText) => {
-  const providerLabel = getProviderLabel(provider);
-  const targetLabel = getLanguageLabel(targetLang);
-  const message = resultText.slice(0, 180);
+/**
+ * Show preview notification
+ */
+const showPreviewNotification = (provider, targetLang, resultText) => {
+  try {
+    const providerLabel = getProviderLabel(provider);
+    const targetLabel = getLanguageLabel(targetLang);
+    const message = resultText.slice(0, PREVIEW_TEXT_LIMIT);
 
-  chrome.notifications.create({
-    type: 'basic',
-    iconUrl: 'icons/icon128.png',
-    title: `Preview (${providerLabel} -> ${targetLabel})`,
-    message
-  });
+    chrome.notifications.create({
+      type: 'basic',
+      iconUrl: 'icons/icon128.png',
+      title: `Preview (${providerLabel} → ${targetLabel})`,
+      message
+    });
+  } catch (error) {
+    console.error('Failed to show preview notification:', error);
+  }
 };
 
+/**
+ * Fetch preview from MyMemory API
+ */
 const fetchPreview = async (sourceLang, targetLang, text) => {
-  const source = sourceLang === 'auto' ? 'auto' : sourceLang;
-  const pair = `${source}|${targetLang}`;
-  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${pair}`;
-  const res = await fetch(url);
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data?.responseData?.translatedText || null;
+  try {
+    const source = sourceLang === 'auto' ? 'auto' : sourceLang;
+    const pair = `${source}|${targetLang}`;
+    const url = `${PREVIEW_API_URL}?q=${encodeURIComponent(text)}&langpair=${pair}`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.responseData?.translatedText || null;
+  } catch (error) {
+    console.warn('Failed to fetch preview:', error);
+    return null;
+  }
 };
 
+/**
+ * Handle translation request
+ */
 const handleTranslation = async ({ text, targetLang, tab }) => {
-  const { provider, openMode, sourceLang, previewEnabled } = await getOptions();
-  const query = encodeURIComponent(text);
-  const url = buildUrl(provider, sourceLang, targetLang, query);
+  try {
+    const { provider, openMode, sourceLang, previewEnabled } = await getOptions();
+    const query = encodeURIComponent(text);
+    const url = buildUrl(provider, sourceLang, targetLang, query);
 
-  if (previewEnabled) {
-    fetchPreview(sourceLang, targetLang, text)
-      .then((result) => {
-        if (result) {
-          showPreviewNotification(provider, targetLang, result);
-        }
-      })
-      .catch(() => {});
+    if (previewEnabled) {
+      fetchPreview(sourceLang, targetLang, text)
+        .then((result) => {
+          if (result) {
+            showPreviewNotification(provider, targetLang, result);
+          }
+        })
+        .catch((error) => {
+          console.warn('Preview error (non-blocking):', error);
+        });
+    }
+
+    if (openMode === 'currentTab' && tab?.id) {
+      await chrome.tabs.update(tab.id, { url });
+    } else {
+      await chrome.tabs.create({ url });
+    }
+
+    recordHistory({ text, sourceLang, targetLang, provider });
+  } catch (error) {
+    console.error('Failed to handle translation:', error);
   }
-
-  if (openMode === 'currentTab' && tab?.id) {
-    chrome.tabs.update(tab.id, { url });
-  } else {
-    chrome.tabs.create({ url });
-  }
-
-  recordHistory({ text, sourceLang, targetLang, provider });
 };
 
+/**
+ * Handle context menu click
+ */
 const onMenuClick = async (info, tab) => {
-  if (!info.selectionText) return;
-  const selected = info.selectionText.trim();
-  if (!selected) return;
+  try {
+    if (!info.selectionText) return;
+    const selected = info.selectionText.trim();
+    if (!selected) return;
 
-  const { targetLanguages = [] } = await getOptions();
-  let target = targetLanguages[0] || 'en';
+    const { targetLanguages = [] } = await getOptions();
+    let target = targetLanguages[0] || 'en';
 
-  if (info.menuItemId.startsWith(MENU_LANG_PREFIX)) {
-    target = info.menuItemId.replace(MENU_LANG_PREFIX, '');
+    if (info.menuItemId.startsWith(MENU_LANG_PREFIX)) {
+      target = info.menuItemId.replace(MENU_LANG_PREFIX, '');
+    }
+
+    handleTranslation({ text: selected, targetLang: target, tab });
+  } catch (error) {
+    console.error('Failed to handle menu click:', error);
   }
-
-  handleTranslation({ text: selected, targetLang: target, tab });
 };
 
+/**
+ * Handle keyboard shortcut command
+ */
 const onCommand = async (command) => {
-  if (command !== 'translate-selection') return;
+  try {
+    if (command !== 'translate-selection') return;
 
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (!tab?.id) return;
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.id) return;
 
-  const result = await chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    func: () => window.getSelection()?.toString() || ''
-  });
+    const result = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: () => window.getSelection()?.toString() || ''
+    });
 
-  const selected = (result && result[0]?.result?.trim()) || '';
-  if (!selected) return;
+    const selected = (result && result[0]?.result?.trim()) || '';
+    if (!selected) return;
 
-  const { targetLanguages = [] } = await getOptions();
-  const target = targetLanguages[0] || 'en';
-  handleTranslation({ text: selected, targetLang: target, tab });
-};
-
-const ensureDefaultsOnInstall = async () => {
-  const options = await getOptions();
-  const next = { ...DEFAULT_OPTIONS };
-
-  if (Array.isArray(options.targetLanguages) && options.targetLanguages.length) {
-    next.targetLanguages = options.targetLanguages;
-  } else if (options.targetLang) {
-    next.targetLanguages = [options.targetLang];
+    const { targetLanguages = [] } = await getOptions();
+    const target = targetLanguages[0] || 'en';
+    handleTranslation({ text: selected, targetLang: target, tab });
+  } catch (error) {
+    console.error('Failed to handle command:', error);
   }
-
-  next.provider = options.provider ?? DEFAULT_OPTIONS.provider;
-  next.openMode = options.openMode ?? DEFAULT_OPTIONS.openMode;
-  next.sourceLang = options.sourceLang ?? DEFAULT_OPTIONS.sourceLang;
-  next.previewEnabled = options.previewEnabled ?? DEFAULT_OPTIONS.previewEnabled;
-  next.saveHistory = options.saveHistory ?? DEFAULT_OPTIONS.saveHistory;
-  next.translationHistory = options.translationHistory ?? DEFAULT_OPTIONS.translationHistory;
-
-  await setOptions(next);
 };
 
+/**
+ * Ensure default options are set on install
+ */
+const ensureDefaultsOnInstall = async () => {
+  try {
+    const options = await getOptions();
+    const next = { ...DEFAULT_OPTIONS };
+
+    if (Array.isArray(options.targetLanguages) && options.targetLanguages.length) {
+      next.targetLanguages = options.targetLanguages;
+    } else if (options.targetLang) {
+      next.targetLanguages = [options.targetLang];
+    }
+
+    next.provider = options.provider ?? DEFAULT_OPTIONS.provider;
+    next.openMode = options.openMode ?? DEFAULT_OPTIONS.openMode;
+    next.sourceLang = options.sourceLang ?? DEFAULT_OPTIONS.sourceLang;
+    next.previewEnabled = options.previewEnabled ?? DEFAULT_OPTIONS.previewEnabled;
+    next.saveHistory = options.saveHistory ?? DEFAULT_OPTIONS.saveHistory;
+    next.translationHistory = options.translationHistory ?? DEFAULT_OPTIONS.translationHistory;
+
+    await setOptions(next);
+  } catch (error) {
+    console.error('Failed to ensure defaults on install:', error);
+  }
+};
+
+/**
+ * Initialize extension on install
+ */
 chrome.runtime.onInstalled.addListener(async () => {
   await ensureDefaultsOnInstall();
   createOrUpdateMenu();
 });
 
+/**
+ * Re-initialize menu on browser startup
+ */
 chrome.runtime.onStartup.addListener(() => {
   createOrUpdateMenu();
 });
 
+/**
+ * Listen for context menu clicks
+ */
 chrome.contextMenus.onClicked.addListener(onMenuClick);
+
+/**
+ * Listen for keyboard shortcut commands
+ */
 chrome.commands.onCommand.addListener(onCommand);
 
+/**
+ * Update menu when settings change
+ */
 chrome.storage.onChanged.addListener((changes, area) => {
   if (
     area === 'sync' &&

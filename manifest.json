@@ -27,5 +27,9 @@
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "options.html",
+    "default_title": "Open Options"
   }
 }

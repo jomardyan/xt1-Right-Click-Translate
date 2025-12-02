@@ -15,11 +15,11 @@
       <div class="layout two-col">
         <label class="field">
           <span class="label">Source language</span>
-          <select id="sourceLang" name="sourceLang"></select>
+          <select id="sourceLang" name="sourceLang" aria-label="Select source language"></select>
         </label>
         <label class="field">
           <span class="label">Provider</span>
-          <select id="provider" name="provider">
+          <select id="provider" name="provider" aria-label="Select translation provider">
             <option value="google">Google Translate</option>
             <option value="deepl">DeepL</option>
             <option value="bing">Bing Translator</option>
@@ -32,10 +32,25 @@
       <label class="field">
         <span class="label">Add target language</span>
         <div class="row">
-          <select id="targetSelect" name="targetSelect"></select>
-          <button type="button" id="addTarget">Add</button>
+          <select id="targetSelect" name="targetSelect" aria-label="Select target language to add"></select>
+          <button type="button" id="addTarget" aria-label="Add selected language">Add</button>
         </div>
         <p class="hint">Maintain a quick list of languages; these show up in the context menu.</p>
+      </label>
+
+      <label class="field">
+        <span class="label">Custom language code</span>
+        <div class="row">
+          <input 
+            type="text" 
+            id="customLangCode" 
+            placeholder="e.g., pt-BR, zh-TW"
+            aria-label="Custom language code input"
+            autocomplete="off"
+          />
+          <button type="button" id="addCustomLang" aria-label="Add custom language">Add</button>
+        </div>
+        <p class="hint">Enter custom language codes (e.g., pt-BR for Brazilian Portuguese, zh-TW for Traditional Chinese)</p>
       </label>
 
       <div class="chips" id="targetsList"></div>
