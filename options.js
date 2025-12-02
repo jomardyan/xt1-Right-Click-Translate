@@ -206,12 +206,12 @@ async function restoreOptions() {
  */
 async function saveOptions(event) {
   event.preventDefault();
-  
+
   if (elements.targetLanguages.length === 0) {
     setStatus('Add at least one target language');
     return;
   }
-  
+
   try {
     const options = getFormValues();
     await new Promise((resolve) => {
