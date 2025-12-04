@@ -1,9 +1,7 @@
 const MENU_ID = 'rightClickTranslate';
 const MENU_LANG_PREFIX = 'rightClickTranslateLang_';
-const SUBMENU_ID = `${MENU_ID}_submenu`;
-const SUBMENU_TITLE = 'Translate to...';
+const MENU_OPTIONS_ID = `${MENU_ID}_openOptions`;
 const MAX_HISTORY = 20;
-const MAX_MENU_LANGUAGES = 6;
 const PREVIEW_TEXT_LIMIT = 180;
 const PREVIEW_API_URL = 'https://api.mymemory.translated.net/get';
 
@@ -146,10 +144,10 @@ const getTopLanguages = async (fallbackTargets) => {
       if (!merged.includes(code)) merged.push(code);
     });
 
-    return merged.slice(0, MAX_MENU_LANGUAGES);
+    return merged;
   } catch (error) {
     console.error('Failed to get top languages:', error);
-    return fallbackTargets.slice(0, MAX_MENU_LANGUAGES);
+    return fallbackTargets;
   }
 };
 
@@ -176,23 +174,23 @@ const createOrUpdateMenu = async () => {
           contexts: ['selection']
         });
 
-        await safeCreateMenu({
-          id: SUBMENU_ID,
-          title: SUBMENU_TITLE,
-          parentId: MENU_ID,
-          contexts: ['selection']
-        });
-
         await Promise.all(
           languages.map((code) =>
             safeCreateMenu({
               id: `${MENU_LANG_PREFIX}${code}`,
-              parentId: SUBMENU_ID,
+              parentId: MENU_ID,
               title: getLanguageLabel(code),
               contexts: ['selection']
             })
           )
         );
+
+        await safeCreateMenu({
+          id: MENU_OPTIONS_ID,
+          title: 'Open options',
+          parentId: MENU_ID,
+          contexts: ['selection']
+        });
       } catch (error) {
         console.error('Failed to create or update menu:', error);
       }
@@ -275,6 +273,11 @@ const handleTranslation = async ({ text, targetLang, tab }) => {
  */
 const onMenuClick = async (info, tab) => {
   try {
+    if (info.menuItemId === MENU_OPTIONS_ID) {
+      chrome.runtime.openOptionsPage();
+      return;
+    }
+
     if (!info.selectionText) return;
     const selected = info.selectionText.trim();
     if (!selected) return;
@@ -369,6 +372,13 @@ chrome.contextMenus.onClicked.addListener(onMenuClick);
  * Listen for keyboard shortcut commands
  */
 chrome.commands.onCommand.addListener(onCommand);
+
+/**
+ * Open options when toolbar icon is clicked
+ */
+chrome.action.onClicked.addListener(() => {
+  chrome.runtime.openOptionsPage();
+});
 
 /**
  * Update menu when settings change
